@@ -18,11 +18,19 @@ open class FlowViewModel: ObservableObject {
     }
     
     open var backgroundColor: Color {
-        .primary
+        .white
     }
 
     open var primaryTintColor: Color {
         .accentColor
+    }
+
+    open var hasProgressBar: Bool {
+        true
+    }
+
+    open var disableSwipe: Bool {
+        false
     }
     
     open var pagesCount: Int {

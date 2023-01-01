@@ -8,15 +8,11 @@ public struct FlowView: View {
     @State private var storedPageSelection: Int?
     @State private var landscapeId = 0
     
-    private let hasProgressBar: Bool
-    private let disableSwipe: Bool
     private let pages: [AnyView]
-    private var isActive: Binding<Bool>?
+    private let isActive: Binding<Bool>?
     
-    public init(viewModel: FlowViewModel, pages: [AnyView], isActive: Binding<Bool>? = nil, hasProgressBar: Bool = true, disableSwipe: Bool = false) {
+    public init(viewModel: FlowViewModel, pages: [AnyView], isActive: Binding<Bool>? = nil) {
         self.pages = pages
-        self.hasProgressBar = hasProgressBar
-        self.disableSwipe = disableSwipe
         self.isActive = isActive
         
         _viewModel = ObservedObject(wrappedValue: viewModel)
@@ -38,9 +34,11 @@ public struct FlowView: View {
         .onReceive(UIDevice.orientationDidChangeNotification, perform: refreshLayoutOnRotation)
     }
     
-    private var progressBar: some View {
-        ProgressBar(progress: $viewModel.progress)
-            .padding(.horizontal, 16)
+    @ViewBuilder private var progressBar: some View {
+        if viewModel.hasProgressBar {
+            ProgressBar(progress: $viewModel.progress)
+                .padding(.horizontal, 16)
+        }
     }
     
     private var backButton: some View {
@@ -55,7 +53,7 @@ public struct FlowView: View {
             ForEach(pages.indices, id: \.self) { index in
                 pages[index]
                     .tag(index)
-                    .applyIf(disableSwipe) {
+                    .applyIf(viewModel.disableSwipe) {
                         $0.highPriorityGesture(DragGesture())
                     } elseModifiers: {
                         $0.gesture(DragGesture())

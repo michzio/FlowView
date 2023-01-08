@@ -56,7 +56,7 @@ public struct FlowView: View {
                     .applyIf(viewModel.disableSwipe) {
                         $0.highPriorityGesture(DragGesture())
                     } elseModifiers: {
-                        $0.gesture(DragGesture())
+                        $0
                     }
             }
         }

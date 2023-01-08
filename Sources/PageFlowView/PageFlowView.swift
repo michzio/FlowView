@@ -22,18 +22,18 @@ public struct PageFlowViewConfiguration {
 
 public struct PageFlowView<T, Content>: View where T: NavigationTitleConvertible, T: Hashable, Content: View {
 
+    @Binding private var selection: Int
+
     private let data: [T]
-    private let selection: Int
     private let configuration: PageFlowViewConfiguration
     private let isActive: Binding<Bool>?
 
     private let pageContent: (T) -> Content
 
-
     public var body: some View {
         PageFlowViewContent<T>(
             viewModel: PageFlowViewModel(data: data, configuration: configuration),
-            selection: selection,
+            selection: $selection,
             pageContent: { AnyView(pageContent($0)) }
         )
         .id(data)
@@ -41,30 +41,39 @@ public struct PageFlowView<T, Content>: View where T: NavigationTitleConvertible
 
     public init(
         data: [T],
-        selection: T,
+        selection: Binding<T>,
         configuration: PageFlowViewConfiguration = .init(),
         isActive: Binding<Bool>? = nil,
         @ViewBuilder pageContent: @escaping (T) -> Content
     ) {
         self.data = data
-        self.selection = data.firstIndex(of: selection) ?? 0
         self.configuration = configuration
         self.isActive = isActive
         self.pageContent = pageContent
+
+        _selection = Binding(
+            get: {
+                data.firstIndex(of: selection.wrappedValue) ?? 0
+            },
+            set: { selectedIndex in
+                selection.wrappedValue = data[selectedIndex]
+            }
+        )
     }
 
     public init(
         data: [T],
-        selectedPage: Int,
+        selectedPage: Binding<Int>,
         configuration: PageFlowViewConfiguration = .init(),
         isActive: Binding<Bool>? = nil,
         @ViewBuilder pageContent: @escaping (T) -> Content
     ) {
         self.data = data
-        self.selection = selectedPage
         self.configuration = configuration
         self.isActive = isActive
         self.pageContent = pageContent
+
+        _selection = selectedPage
     }
 }
 
@@ -72,9 +81,9 @@ struct PageFlowViewContent<T>: View where T: NavigationTitleConvertible, T: Hash
 
     @StateObject private var viewModel: PageFlowViewModel<T>
 
-    private let selection: Int
-    private let pageContent: (T) -> AnyView
+    @Binding private var selection: Int
 
+    private let pageContent: (T) -> AnyView
     private let isActive: Binding<Bool>?
 
     var body: some View {
@@ -83,6 +92,9 @@ struct PageFlowViewContent<T>: View where T: NavigationTitleConvertible, T: Hash
                 withAnimation {
                     viewModel.selection = selection
                 }
+            }
+            .onReceive(viewModel.$selection) {
+                selection = $0
             }
     }
 
@@ -94,16 +106,15 @@ struct PageFlowViewContent<T>: View where T: NavigationTitleConvertible, T: Hash
 
     init(
         viewModel: @escaping @autoclosure () -> PageFlowViewModel<T>,
-        selection: Int,
+        selection: Binding<Int>,
         configuration: PageFlowViewConfiguration = .init(),
         isActive: Binding<Bool>? = nil,
         pageContent: @escaping (T) -> AnyView
     ) {
-        self.selection = selection
         self.pageContent = pageContent
-
         self.isActive = isActive
 
+        _selection = selection
         _viewModel = StateObject(wrappedValue: viewModel())
     }
 }
@@ -136,7 +147,7 @@ struct SwiftUIView_Previews: PreviewProvider {
         var body: some View {
             NavigationView {
                 VStack {
-                    PageFlowView(data: data, selection: selection) { model in
+                    PageFlowView(data: data, selection: $selection) { model in
                         ZStack {
                             Color.white
                             Button {

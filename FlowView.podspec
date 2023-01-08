@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
 
   s.name = "FlowView"
-  s.version = "0.2.1"
+  s.version = "0.2.2"
   s.summary = "SwiftUI wizard-like TabView."
 
   s.swift_version = '5.7'
